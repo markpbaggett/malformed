@@ -12,3 +12,4 @@ bin           = @["malformed"]
 # Dependencies
 
 requires "nim >= 1.0.6"
+requires "argparse >= 0.10.1"
