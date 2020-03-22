@@ -1,0 +1,54 @@
+name: Release and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Malformed
+      uses: actions/checkout@v2
+    
+    - name: Cache nimble things
+      id: cache-nimble
+      uses: actions/cache@v1
+      with:
+        path: ~/.nimble
+        key: ${{ runner.os }}-nimble-stable
+
+    - name: Setup nim
+      uses: jiro4989/setup-nim-action@v1.0.2
+    
+    - name: Install dependencies and my stuff
+      run: |
+        nimble refresh
+        nimble install -y
+
+    - name: Run tests
+      run: nimble test
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+    
+    - name: Upload Release Binary
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./malformed
+        asset_name: malformed
+        asset_content_type: application/x-pie-executable
